@@ -65,6 +65,7 @@ import org.slf4j.LoggerFactory;
 /**
  * The peer discovery agent is the network component that sends and receives peer discovery messages
  * via UDP.
+ * 一个用于发现新的对等节点的组件。它实现了以太坊的节点发现协议（例如，Discovery v4），允许节点自动发现和连接到网络中的其他节点。通过这个代理类，节点可以动态地找到和连接到新的对等节点，从而保持一个健康和分布良好的网络连接状态
  */
 public abstract class PeerDiscoveryAgent {
   private static final Logger LOG = LoggerFactory.getLogger(PeerDiscoveryAgent.class);

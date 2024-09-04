@@ -19,6 +19,9 @@ import org.hyperledger.besu.ethereum.p2p.peers.Peer;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 实现这个接口的类当发生权限变更时会收取到通知
+ */
 public interface PermissionsUpdateCallback {
 
   /**

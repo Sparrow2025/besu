@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// 网络运行器类，用于管理和控制 P2P 网络的运行状态，启动和停止网络组件
 public class NetworkRunner implements AutoCloseable {
   private static final Logger LOG = LoggerFactory.getLogger(NetworkRunner.class);
 

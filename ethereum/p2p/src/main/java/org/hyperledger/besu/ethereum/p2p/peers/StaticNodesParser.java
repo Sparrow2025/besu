@@ -34,6 +34,7 @@ import io.vertx.core.json.JsonArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// 用于解析和管理节点配置文件中的“静态节点”
 public class StaticNodesParser {
 
   private static final Logger LOG = LoggerFactory.getLogger(StaticNodesParser.class);

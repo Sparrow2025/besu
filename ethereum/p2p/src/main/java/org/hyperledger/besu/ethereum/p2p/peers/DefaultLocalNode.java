@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+// DefaultLocalNode 是 Hyperledger Besu 的一个核心类，用于管理本地节点的状态、属性和与其他节点的网络交互。它负责节点发现、连接管理和节点状态的更新，是保证以太坊网络节点正常运作的重要组成部分。
 class DefaultLocalNode implements MutableLocalNode {
 
   private final AtomicBoolean isReady = new AtomicBoolean(false);

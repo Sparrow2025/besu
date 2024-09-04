@@ -134,6 +134,8 @@ public class DefaultP2PNetwork implements P2PNetwork {
   private final ScheduledExecutorService peerConnectionScheduler =
       Executors.newSingleThreadScheduledExecutor();
   private final PeerDiscoveryAgent peerDiscoveryAgent;
+
+  // 处理 RLPx 协议的实现和管理，包括节点连接的加密握手、会话建立和消息加密解密
   private final RlpxAgent rlpxAgent;
 
   private final NetworkingConfiguration config;

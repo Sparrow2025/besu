@@ -25,6 +25,8 @@ import java.util.Optional;
 public class DefaultPeer extends DefaultPeerId implements Peer {
 
   private final EnodeURL enodeURL;
+
+  // forkID 是在以太坊节点通信中使用的一个重要概念，它用于识别和验证不同节点所属的链分叉（fork）。在以太坊网络中，由于协议的升级或分叉，可能会有不同的节点运行不同的链版本，因此需要一种机制来识别这些节点的链状态。forkID 就是为此目的而设计的。
   private ForkId forkId;
 
   protected DefaultPeer(final EnodeURL enodeURL) {
