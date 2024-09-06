@@ -41,6 +41,12 @@ import org.apache.tuweni.bytes.Bytes;
 /**
  * Implements a Kademlia routing table based on k-buckets with a keccak-256 XOR-based distance
  * metric.
+ * PeerTable 是一个数据结构，用于维护一个节点知道的其他节点的信息。它存储了每个已知节点的 Node ID、IP 地址、端口号、最后联系时间等数据。
+ * 这种路由表结构通常基于 Kademlia DHT（分布式哈希表）的设计，用于高效地查找和管理节点之间的连接
+ *
+ * PeerTable 通常由一系列的“桶”组成，每个桶（Bucket）代表一个范围的 XOR 距离（与当前节点的 Node ID 相比）。每个桶存储了一组与当前节点“距离”相似的节点
+ *
+ * 这种结构基于 Kademlia 协议的设计，目的是优化查找效率：在查找过程中，可以优先从距离最接近的桶中寻找节点
  */
 public class PeerTable {
   private static final int N_BUCKETS = 256;

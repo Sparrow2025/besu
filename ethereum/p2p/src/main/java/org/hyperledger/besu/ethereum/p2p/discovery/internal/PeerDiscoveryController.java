@@ -103,7 +103,11 @@ import org.slf4j.LoggerFactory;
  */
 public class PeerDiscoveryController {
   private static final Logger LOG = LoggerFactory.getLogger(PeerDiscoveryController.class);
+
+  // refresh the peer table every 30 minutes
   private static final long REFRESH_CHECK_INTERVAL_MILLIS = MILLISECONDS.convert(30, SECONDS);
+
+  // 这个变量通常表示在进行节点刷新过程中，每轮刷新操作的最大允许时间
   private static final int PEER_REFRESH_ROUND_TIMEOUT_IN_SECONDS = 5;
   protected final TimerUtil timerUtil;
   private final PeerTable peerTable;
@@ -114,6 +118,13 @@ public class PeerDiscoveryController {
   private final Collection<DiscoveryPeer> bootstrapNodes;
 
   /* A tracker for inflight interactions and the state machine of a peer. */
+  /**
+   * 用于存储当前处于活动状态的交互请求和响应
+   * 在节点发现过程中，可能会有多个请求同时进行。inflightInteractions 帮助管理这些并发的网络操作，避免冲突和重复
+   * 例如，如果一个节点同时发送了多个 FINDNODE 请求，inflightInteractions 可以用来区分这些请求，并跟踪它们的状态和响应
+   * inflightInteractions 的 key 是节点的 ID，value 是一个 Map，key 是 PacketType，value 是 PeerInteractionState
+   * 主要用于管理和追踪当前与特定对等节点的交互状态。它集中在单个节点与当前节点之间的交互上，例如请求和响应过程
+   */
   private final Map<Bytes, Map<PacketType, PeerInteractionState>> inflightInteractions =
       new ConcurrentHashMap<>();
 
@@ -130,15 +141,19 @@ public class PeerDiscoveryController {
   private final boolean filterOnEnrForkId;
   private final RlpxAgent rlpxAgent;
 
+  // The delay function for retrying interactions
   private RetryDelayFunction retryDelayFunction = RetryDelayFunction.linear(1.5, 2000, 60000);
 
   private final AsyncExecutor workerExecutor;
 
   private final PeerRequirement peerRequirement;
+
+  // 用于指定节点在节点发现或管理模块中刷新节点表的时间间隔。这个参数的单位是毫秒（ms），它决定了节点表的刷新频率，确保节点信息的最新性和准确性
   private final long tableRefreshIntervalMs;
   private OptionalLong tableRefreshTimerId = OptionalLong.empty();
   private long lastRefreshTime = -1;
 
+  // 用于指定定期清理节点表（如 PeerTable）的时间间隔。这个参数的单位是毫秒（ms），决定了系统多久会执行一次清理操作，以移除过时或不再有效的节点信息
   private final long cleanPeerTableIntervalMs;
   private final AtomicBoolean peerTableIsDirty = new AtomicBoolean(false);
   private OptionalLong cleanTableTimerId = OptionalLong.empty();
@@ -735,7 +750,7 @@ public class PeerDiscoveryController {
     return resolvedPeer;
   }
 
-  /** Holds the state machine data for a peer interaction. */
+  /** Holds the state machine data for a peer interaction. 用来保存Peer的interaction state **/
   private class PeerInteractionState implements Predicate<Packet> {
 
     private static final int MAX_RETRIES = 5;

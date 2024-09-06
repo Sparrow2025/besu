@@ -32,6 +32,9 @@ import org.apache.tuweni.bytes.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 负责递归地刷新节点信息，以确保本地节点列表中的信息最新和准确。这个类的主要作用是在以太坊网络中定期进行节点发现，确保网络的连通性和发现效率
+ */
 public class RecursivePeerRefreshState {
   private static final Logger LOG = LoggerFactory.getLogger(RecursivePeerRefreshState.class);
   private static final int MAX_CONCURRENT_REQUESTS = 3;

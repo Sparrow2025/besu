@@ -18,6 +18,13 @@ import java.util.Arrays;
 
 import org.apache.tuweni.bytes.Bytes;
 
+/**
+ * PeerDistanceCalculator 的主要功能是计算两个节点之间的“距离”。这个距离不是物理上的地理距离，而是根据节点的 Node ID（通常是节点的公钥的哈希值）之间的 XOR 计算得出的。
+ * XOR 距离的计算方法是对两个 Node ID 进行按位异或运算。结果的值越小，表示两个节点在网络拓扑结构中越接近
+ *
+ * 当节点加入网络或收到其他节点的请求时，PeerDistanceCalculator 可以用于计算和更新路由表中节点的距离，决定哪些节点应该保留在路由表中
+ * 在响应 FINDNODE 消息时，节点会使用 PeerDistanceCalculator 来确定自己已知的与目标节点最接近的节点列表，并将这些信息作为响应发送回去
+ */
 public class PeerDistanceCalculator {
 
   /**

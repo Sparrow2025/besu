@@ -36,6 +36,10 @@ import org.apache.tuweni.bytes.Bytes;
  * is full, the <i>least recently accessed peer</i> is proposed for eviction, thus aiming to keep
  * the bucket filled with alive, responsive peers.
  */
+
+/**
+ * 用来存储发现的Peer
+ */
 public class Bucket {
   private final DiscoveryPeer[] kBucket;
   private final int bucketSize;
