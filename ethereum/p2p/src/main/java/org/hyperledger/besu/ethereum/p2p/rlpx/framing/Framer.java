@@ -43,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * 用来读取和组合 RLPx 协议帧的组件，符合以太坊协议中定义的方案
  * This component is responsible for reading and composing RLPx protocol frames, conformant to the
  * schemes defined in the Ethereum protocols.
  *

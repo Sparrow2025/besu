@@ -26,6 +26,10 @@ import java.net.InetSocketAddress;
 import java.util.Set;
 
 /** A P2P connection to another node. */
+
+/**
+ * 与另一个节点的P2P连接
+ */
 public interface PeerConnection {
 
   /**

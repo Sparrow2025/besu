@@ -16,6 +16,7 @@ package org.hyperledger.besu.ethereum.p2p.rlpx.wire;
 
 /**
  * 用于定义和配置 RLPx 协议中的子协议。子协议是附加在 RLPx 协议之上的协议，处理特定类型的消息或操作（如区块同步、交易传播等）
+ * 允许节点支持多种子协议，实现灵活的功能扩展。例如，一个节点既可以是全节点（支持 eth 子协议），也可以是轻节点（支持 les 子协议）
  */
 public interface SubProtocol {
 

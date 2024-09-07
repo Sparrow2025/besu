@@ -23,6 +23,53 @@ import java.util.Optional;
 import io.netty.buffer.ByteBuf;
 
 /**
+ * 节点 A 发起握手请求：
+ *
+ * 节点 A 生成一个随机的 ECC 密钥对 (Ephemeral Key Pair)。
+ * 节点 A 创建一个 HandshakeMessage，该消息包括：
+ * 节点 A 的公钥（publicKey）。
+ * 一个随机数（nonce），用于防止重放攻击。
+ * RLPx 协议版本。
+ * 节点 A 将这条消息用节点 B 的公钥进行加密，并发送给节点 B。
+ * 节点 B 接收握手请求：
+ *
+ * 节点 B 接收到来自节点 A 的握手消息。
+ * 节点 B 解密消息，提取出节点 A 的公钥、随机数和协议版本。
+ * 节点 B 验证节点 A 的身份（通过签名或其他方式）。
+ * 节点 B 生成自己的随机 ECC 密钥对。
+ * 节点 B 使用自己的私钥和节点 A 的公钥计算共享密钥（ECDH - Elliptic Curve Diffie-Hellman）。
+ * 节点 B 生成自己的 nonce 并创建一个 HandshakeMessage 响应消息，包含：
+ * 节点 B 的公钥。
+ * 节点 B 的 nonce。
+ * RLPx 协议版本。
+ * 节点 B 将消息加密后发送给节点 A。
+ * 节点 A 处理握手响应：
+ *
+ * 节点 A 接收到节点 B 的握手响应消息。
+ * 节点 A 使用自己的私钥和节点 B 的公钥计算共享密钥（ECDH）。
+ * 节点 A 验证节点 B 的身份。
+ * 节点 A 验证双方的 nonce 和协议版本是否匹配。
+ * 节点 A 生成会话密钥（AES 加密密钥和 MAC 密钥），这些密钥是基于双方的共享密钥和 nonce 计算得出的。
+ * 节点 B 计算会话密钥：
+ *
+ * 节点 B 也基于共享密钥和双方的 nonce 计算会话密钥。
+ * 如果计算出的会话密钥与节点 A 一致，则握手完成，双方可以开始使用会话密钥进行加密通信。
+ * 握手过程的核心机制
+ * ECDH（Elliptic Curve Diffie-Hellman）密钥交换：
+ *
+ * 双方节点通过各自的私钥和对方的公钥计算共享密钥。这种方式确保了在没有第三方参与的情况下，双方可以计算出相同的共享密钥。
+ * 共享密钥用于生成会话密钥，用于后续的对称加密通信。
+ * 对称加密和消息认证码（MAC）：
+ *
+ * 握手成功后，双方生成 AES 密钥（用于加密数据）和 MAC 密钥（用于验证数据的完整性和来源）。
+ * 所有后续通信数据将通过 AES 密钥进行加密，并使用 MAC 密钥生成的消息认证码来验证数据的完整性。
+ * 随机数（Nonce）和协议版本：
+ *
+ * 每个节点在握手过程中生成一个随机数（nonce），用于防止重放攻击。
+ * 协议版本用于确保双方使用相同的 RLPx 协议版本。
+ */
+
+/**
  * A protocol to perform an RLPx crypto handshake with a peer.
  *
  * <p>This models a two-party handshake with a potentially indefinite sequence of messages between

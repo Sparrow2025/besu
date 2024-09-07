@@ -20,6 +20,9 @@ import org.hyperledger.besu.ethereum.p2p.rlpx.ConnectCallback;
 import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * 初始化连接
+ */
 public interface ConnectionInitializer {
 
   /**

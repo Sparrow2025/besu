@@ -59,6 +59,9 @@ import org.apache.tuweni.bytes.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 一个 RlpxAgent 实例管理一个节点的所有 RLPx 连接，而不是单一的连接
+ */
 public class RlpxAgent {
   private static final Logger LOG = LoggerFactory.getLogger(RlpxAgent.class);
 
