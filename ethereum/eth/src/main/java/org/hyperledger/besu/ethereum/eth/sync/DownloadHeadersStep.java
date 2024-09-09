@@ -97,6 +97,7 @@ public class DownloadHeadersStep
               ethContext,
               range.getStart().getHash(),
               range.getStart().getNumber(),
+              // 这里是根据 AsyncDownloaderConfiguration 的 downloaderHeaderRequestSize 配置的
               headerRequestSize,
               metricsSystem)
           .assignPeer(range.getSyncTarget())

@@ -51,10 +51,25 @@ public class EthScheduler {
   private final CountDownLatch shutdown = new CountDownLatch(1);
   private static final int TX_WORKER_CAPACITY = 1_000;
 
+  /**
+   * 用来秩序区块链现在的任务
+   */
   protected final ExecutorService syncWorkerExecutor;
+
+  /**
+   * 用来执行定时任务
+   */
   protected final ScheduledExecutorService scheduler;
+
+  /**
+   *
+   */
   protected final ExecutorService txWorkerExecutor;
   protected final ExecutorService servicesExecutor;
+
+  /**
+   * 用来执行计算任务，比如区块验证
+   */
   protected final ExecutorService computationExecutor;
   protected final ExecutorService blockCreationExecutor;
 

@@ -67,6 +67,9 @@ public class PendingPeerRequest {
     }
   }
 
+  /**
+   * 这里是真正的发起请求
+   */
   private synchronized void sendRequest(final EthPeer peer) {
     // Recheck if we should send the request now we're inside the synchronized block
     if (!result.isDone()) {
@@ -79,6 +82,9 @@ public class PendingPeerRequest {
     }
   }
 
+  /**
+   * 这里是获取可用的peer
+   */
   private Optional<EthPeer> getPeerToUse() {
     // return the assigned peer if still valid, otherwise switch to another peer
     return peer.filter(p -> !p.isDisconnected()).isPresent()

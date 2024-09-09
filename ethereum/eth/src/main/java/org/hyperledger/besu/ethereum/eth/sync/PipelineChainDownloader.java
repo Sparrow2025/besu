@@ -55,6 +55,12 @@ public class PipelineChainDownloader implements ChainDownloader {
   private final SyncDurationMetrics syncDurationMetrics;
   private Pipeline<?> currentDownloadPipeline;
 
+  /**
+   * 通过创建一个多阶段的流水线，将数据下载和处理的不同步骤串联起来。例如，下载区块头、下载区块体、验证区块、存储区块等步骤可以并行执行，从而提高整体同步效率
+   * 通过使用流水线模型，PipelineChainDownloader 可以同时处理多个区块的数据下载和验证任务。这种并行化的处理方式显著提高了同步速度，特别是在网络带宽和处理能力足够的情况下
+   * PipelineChainDownloader 的设计使其能够适应不同的同步模式。它不仅用于完整同步（Full Sync），也可用于快速同步（Fast Sync）和其他自定义同步逻辑。其模块化的结构允许开发人员轻松地添加或调整不同的同步步骤
+   */
+
   public PipelineChainDownloader(
       final SyncState syncState,
       final AbstractSyncTargetManager syncTargetManager,
@@ -100,6 +106,7 @@ public class PipelineChainDownloader implements ChainDownloader {
 
   private CompletableFuture<Void> performDownload() {
     return exceptionallyCompose(selectSyncTargetAndDownload(), this::handleFailedDownload)
+            // 这里是一个递归调用，如果下载没有完成，会重新调用 performDownload 方法
         .thenCompose(this::repeatUnlessDownloadComplete);
   }
 

@@ -18,9 +18,20 @@ import java.util.Optional;
 
 public class EthContext {
 
+  /**
+   * 管理与其他以太坊节点的连接和状态信息，跟踪已连接的对等节点列表
+   */
   private final EthPeers ethPeers;
+
+  /**
+   * 管理从其他节点接收到的消息和发送的消息
+   */
   private final EthMessages ethMessages;
   private final Optional<EthMessages> snapMessages;
+
+  /**
+   * 提供用于处理异步任务和延迟执行的调度器
+   */
   private final EthScheduler scheduler;
 
   public EthContext(
