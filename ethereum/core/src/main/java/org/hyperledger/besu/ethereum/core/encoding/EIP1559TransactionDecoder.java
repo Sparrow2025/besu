@@ -42,14 +42,15 @@ public class EIP1559TransactionDecoder {
     final Transaction.Builder builder =
         Transaction.builder()
             .type(TransactionType.EIP1559)
-            .chainId(chainId)
-            .nonce(input.readLongScalar())
-            .maxPriorityFeePerGas(Wei.of(input.readUInt256Scalar()))
-            .maxFeePerGas(Wei.of(input.readUInt256Scalar()))
-            .gasLimit(input.readLongScalar())
-            .to(input.readBytes(v -> v.isEmpty() ? null : Address.wrap(v)))
-            .value(Wei.of(input.readUInt256Scalar()))
-            .payload(input.readBytes())
+            .chainId(chainId) // 链的标识符，用于防止重放攻击
+            .nonce(input.readLongScalar()) // 交易发送者的账户的交易序号
+            .maxPriorityFeePerGas(Wei.of(input.readUInt256Scalar())) // 用户愿意支付给矿工的最高小费
+            .maxFeePerGas(Wei.of(input.readUInt256Scalar())) // 用户愿意为整个交易支付的最高费用
+            .gasLimit(input.readLongScalar()) // 交易的最大燃料量
+            .to(input.readBytes(v -> v.isEmpty() ? null : Address.wrap(v))) // 交易的接收方地址
+            .value(Wei.of(input.readUInt256Scalar())) // 交易的价值
+            .payload(input.readBytes()) // 交易的数据
+            // 访问的合约地址和存储槽，优化 gas 消耗
             .accessList(
                 input.readList(
                     accessListEntryRLPInput -> {
@@ -61,6 +62,7 @@ public class EIP1559TransactionDecoder {
                       accessListEntryRLPInput.leaveList();
                       return accessListEntry;
                     }));
+    // V
     final byte recId = (byte) input.readUnsignedByteScalar();
     final Transaction transaction =
         builder
@@ -68,8 +70,8 @@ public class EIP1559TransactionDecoder {
                 SIGNATURE_ALGORITHM
                     .get()
                     .createSignature(
-                        input.readUInt256Scalar().toUnsignedBigInteger(),
-                        input.readUInt256Scalar().toUnsignedBigInteger(),
+                        input.readUInt256Scalar().toUnsignedBigInteger(), // R
+                        input.readUInt256Scalar().toUnsignedBigInteger(), // S
                         recId))
             .build();
     input.leaveList();

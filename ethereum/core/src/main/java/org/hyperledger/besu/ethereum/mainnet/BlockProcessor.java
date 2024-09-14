@@ -114,7 +114,7 @@ public interface BlockProcessor {
    * @param transactions the transactions in the block
    * @param ommers the block ommers
    * @param withdrawals the withdrawals for the block
-   * @param privateMetadataUpdater the updater used to update the private metadata for the block
+   * @param privateMetadataUpdater the updater used to update the private metadata for the block 用于处理 隐私相关元数据更新 的对象或机制，特别是在处理与 隐私交易（Private Transactions）相关的功能时。这与以太坊的隐私交易模型有关，通常是在 企业环境 或 联盟链 中，用于确保某些交易的隐私性
    * @return the block processing result
    */
   BlockProcessingResult processBlock(

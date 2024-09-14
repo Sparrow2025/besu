@@ -107,25 +107,19 @@ public abstract class AbstractBlockProcessor implements BlockProcessor {
     long currentBlobGasUsed = 0;
 
     final ProtocolSpec protocolSpec = protocolSchedule.getByBlockHeader(blockHeader);
-
+    // 这里会将blockHeader中的blockHashes存储到worldState中
     protocolSpec.getBlockHashProcessor().processBlockHashes(blockchain, worldState, blockHeader);
     final BlockHashLookup blockHashLookup = new CachingBlockHashLookup(blockHeader, blockchain);
-
+    // 计算挖矿奖励的地址
     final Address miningBeneficiary = miningBeneficiaryCalculator.calculateBeneficiary(blockHeader);
-
+    // ParentHeader
     Optional<BlockHeader> maybeParentHeader =
         blockchain.getBlockHeader(blockHeader.getParentHash());
-
-    Wei blobGasPrice =
-        maybeParentHeader
-            .map(
-                parentHeader ->
-                    protocolSpec
-                        .getFeeMarket()
-                        .blobGasPricePerGas(
-                            calculateExcessBlobGasForParent(protocolSpec, parentHeader)))
+    // 计算blobGasPrice
+    Wei blobGasPrice = maybeParentHeader.map(parentHeader ->
+                    protocolSpec.getFeeMarket().blobGasPricePerGas(calculateExcessBlobGasForParent(protocolSpec, parentHeader)))
             .orElse(Wei.ZERO);
-
+    // blockPreProcessing
     final Optional<PreprocessingContext> preProcessingContext =
         runBlockPreProcessing(
             worldState,

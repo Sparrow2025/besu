@@ -56,6 +56,7 @@ public class TransactionDecoder {
    */
   public static Transaction decodeRLP(
       final RLPInput rlpInput, final EncodingContext encodingContext) {
+    // 以太坊的交易类型在网络升级过程中发生了变化。在以太坊的早期版本（例如 Frontier 阶段），所有交易都是未分类的、采用固定结构的交易（legacy transactions），即普通交易。但是在后续的 EIP-2718 提案中，引入了Typed Transaction（有类型的交易）。这种交易格式允许未来以太坊引入新的交易类型，而无需改变现有的协议。Typed Transaction 在 RLP 编码中包含一个前缀字节，表示交易的类型
     if (isTypedTransaction(rlpInput)) {
       return decodeTypedTransaction(rlpInput, encodingContext);
     } else {
@@ -152,6 +153,7 @@ public class TransactionDecoder {
    * @param rlpInput the RLP input
    * @return true if the RLP input is a typed transaction, false otherwise
    */
+  // 不是List类型的RLP数据，就是Typed Transaction
   private static boolean isTypedTransaction(final RLPInput rlpInput) {
     return !rlpInput.nextIsList();
   }

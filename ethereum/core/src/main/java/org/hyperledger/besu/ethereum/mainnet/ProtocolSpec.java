@@ -31,6 +31,14 @@ import org.hyperledger.besu.evm.precompile.PrecompileContractRegistry;
 import java.util.Optional;
 
 /** A protocol specification. */
+
+/**
+ * ProtocolSpec: 每个协议规则集的具体定义
+ * 交易处理逻辑
+ * 区块验证逻辑
+ * 状态转换逻辑
+ * 其他协议相关的行为
+ */
 public class ProtocolSpec {
 
   private final String name;

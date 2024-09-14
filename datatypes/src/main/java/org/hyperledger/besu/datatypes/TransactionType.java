@@ -18,7 +18,9 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Set;
 
-/** The enum Transaction type. */
+/** The enum Transaction type.
+ *  ALL TRANSACTION TYPES
+ * */
 public enum TransactionType {
   /** The Frontier. */
   FRONTIER(0xf8 /* this is serialized as 0x0 in TransactionCompleteResult */),

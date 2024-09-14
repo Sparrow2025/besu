@@ -88,9 +88,8 @@ public class MainnetParallelBlockProcessor extends MainnetBlockProcessor {
       final BlockHashOperation.BlockHashLookup blockHashLookup,
       final Wei blobGasPrice) {
     if ((worldState instanceof DiffBasedWorldState)) {
-      ParallelizedConcurrentTransactionProcessor parallelizedConcurrentTransactionProcessor =
-          new ParallelizedConcurrentTransactionProcessor(transactionProcessor);
-      // runAsyncBlock, if activated, facilitates the  non-blocking parallel execution of
+      ParallelizedConcurrentTransactionProcessor parallelizedConcurrentTransactionProcessor = new ParallelizedConcurrentTransactionProcessor(transactionProcessor);
+      // runAsyncBlock, if activated, facilitates the non-blocking parallel execution of
       // transactions in the background through an optimistic strategy.
       parallelizedConcurrentTransactionProcessor.runAsyncBlock(
           worldState,

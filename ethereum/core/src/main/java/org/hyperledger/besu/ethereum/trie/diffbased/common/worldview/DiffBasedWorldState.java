@@ -48,6 +48,12 @@ import org.apache.tuweni.units.bigints.UInt256;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 主要用于高效地表示和管理世界状态的更新或差异
+ * 在区块链更新过程中，尤其是区块验证和应用时，节点会计算出世界状态的变化。DiffBasedWorldState 记录了这些变化（差异），而不是每次都重建整个世界状态。这种方法可以节省存储和计算资源
+ * 在以太坊节点之间同步状态时，传输和处理整个世界状态可能非常耗时。DiffBasedWorldState 通过传输状态的差异而不是完整的状态，优化了同步过程，使得节点之间的状态同步更加高效
+ * 由于 DiffBasedWorldState 记录了状态的差异，它可以支持状态快照和回滚操作。比如，当处理不确定的区块或需要重新执行某些交易时，可以通过应用或撤销状态差异来恢复到先前的状态
+ */
 public abstract class DiffBasedWorldState
     implements MutableWorldState, DiffBasedWorldView, StorageSubscriber {
 
