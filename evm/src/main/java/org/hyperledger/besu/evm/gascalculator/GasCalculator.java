@@ -561,9 +561,9 @@ public interface GasCalculator {
 
   /**
    * Returns the gas cost of the explicitly declared access list.
-   *
-   * @param addresses The count of addresses accessed
-   * @param storageSlots The count of storage slots accessed
+   * 以太坊中用于计算与访问列表（access list）相关的交易的 gas 成本的方法
+   * @param addresses The count of addresses accessed 需要访问的地址数
+   * @param storageSlots The count of storage slots accessed 需要访问的存储slot
    * @return the access list's gas cost
    */
   default long accessListGasCost(final int addresses, final int storageSlots) {

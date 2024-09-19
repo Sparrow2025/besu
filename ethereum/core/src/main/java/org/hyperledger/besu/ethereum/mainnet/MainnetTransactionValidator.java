@@ -85,22 +85,20 @@ public class MainnetTransactionValidator implements TransactionValidator {
       final Optional<Wei> baseFee,
       final Optional<Wei> blobFee,
       final TransactionValidationParams transactionValidationParams) {
-    final ValidationResult<TransactionInvalidReason> signatureResult =
-        validateTransactionSignature(transaction);
+    // 验证签名
+    final ValidationResult<TransactionInvalidReason> signatureResult = validateTransactionSignature(transaction);
     if (!signatureResult.isValid()) {
       return signatureResult;
     }
-
+    // 验证blob交易
     if (transaction.getType().supportsBlob()) {
-      final ValidationResult<TransactionInvalidReason> blobTransactionResult =
-          validateBlobTransaction(transaction);
+      final ValidationResult<TransactionInvalidReason> blobTransactionResult = validateBlobTransaction(transaction);
       if (!blobTransactionResult.isValid()) {
         return blobTransactionResult;
       }
 
       if (transaction.getBlobsWithCommitments().isPresent()) {
-        final ValidationResult<TransactionInvalidReason> blobsResult =
-            validateTransactionsBlobs(transaction);
+        final ValidationResult<TransactionInvalidReason> blobsResult = validateTransactionsBlobs(transaction);
         if (!blobsResult.isValid()) {
           return blobsResult;
         }
@@ -115,12 +113,12 @@ public class MainnetTransactionValidator implements TransactionValidator {
               "Transaction type %s is invalid, accepted transaction types are %s",
               transactionType, acceptedTransactionTypes));
     }
-
+    // 这里判断nonce是否合理
     if (transaction.getNonce() == MAX_NONCE) {
       return ValidationResult.invalid(
           TransactionInvalidReason.NONCE_OVERFLOW, "Nonce must be less than 2^64-1");
     }
-
+    // 如果是合约创建，需要判断字节长度是否超出限制，默认是65536个字节（2^16）
     if (transaction.isContractCreation() && transaction.getPayload().size() > maxInitcodeSize) {
       return ValidationResult.invalid(
           TransactionInvalidReason.INITCODE_TOO_LARGE,
@@ -139,14 +137,16 @@ public class MainnetTransactionValidator implements TransactionValidator {
       final TransactionValidationParams transactionValidationParams) {
 
     if (maybeBaseFee.isPresent()) {
+      // 计算出每单位gas的price
       final Wei price = feeMarket.getTransactionPriceCalculator().price(transaction, maybeBaseFee);
+      // 交易的 gas price 低于网络当前的市场水平或最低要求。在以太坊中，矿工通常会优先打包那些提供较高手续费的交易，以获得更高的奖励。低于网络拥堵时的市场价的交易会被视为 "underpriced"
       if (!transactionValidationParams.allowUnderpriced()
           && price.compareTo(maybeBaseFee.orElseThrow()) < 0) {
         return ValidationResult.invalid(
             TransactionInvalidReason.GAS_PRICE_BELOW_CURRENT_BASE_FEE,
             "gasPrice is less than the current BaseFee");
       }
-
+      // 需要大于优先费用
       // assert transaction.max_fee_per_gas >= transaction.max_priority_fee_per_gas
       if (transaction.getType().supports1559FeeMarket()
           && transaction
@@ -162,7 +162,9 @@ public class MainnetTransactionValidator implements TransactionValidator {
     }
 
     if (transaction.getType().supportsBlob()) {
+      // 计算blob所需费用
       final long txTotalBlobGas = gasCalculator.blobGasCost(transaction.getBlobCount());
+      // 检查是否超过当前区块blob最大gas的limit
       if (txTotalBlobGas > gasLimitCalculator.currentBlobGasLimit()) {
         return ValidationResult.invalid(
             TransactionInvalidReason.TOTAL_BLOB_GAS_TOO_HIGH,
@@ -186,11 +188,9 @@ public class MainnetTransactionValidator implements TransactionValidator {
       }
     }
 
-    final long intrinsicGasCost =
-        gasCalculator.transactionIntrinsicGasCost(
-                transaction.getPayload(), transaction.isContractCreation())
-            + (transaction.getAccessList().map(gasCalculator::accessListGasCost).orElse(0L))
-            + gasCalculator.setCodeListGasCost(transaction.authorizationListSize());
+    final long intrinsicGasCost = gasCalculator.transactionIntrinsicGasCost(transaction.getPayload(), transaction.isContractCreation()) // 每笔交易都有一个基本的 gas 成本，无论交易内容如何。这个成本包括了执行交易所需的基础费用
+            + (transaction.getAccessList().map(gasCalculator::accessListGasCost).orElse(0L)) // 访问存储的费用
+            + gasCalculator.setCodeListGasCost(transaction.authorizationListSize()); // 是与以太坊中的**授权列表（authorization list）**相关的一个概念，主要用于表示列表中包含的授权条目的数量。这些授权条目通常用于控制对某些操作或资源的访问权限
     if (Long.compareUnsigned(intrinsicGasCost, transaction.getGasLimit()) > 0) {
       return ValidationResult.invalid(
           TransactionInvalidReason.INTRINSIC_GAS_EXCEEDS_GAS_LIMIT,
@@ -198,14 +198,19 @@ public class MainnetTransactionValidator implements TransactionValidator {
               "intrinsic gas cost %s exceeds gas limit %s",
               intrinsicGasCost, transaction.getGasLimit()));
     }
-
+    // 以太坊中用于计算某个交易或合约操作的前置（upfront）gas 成本的方法。这一方法主要用于确定在执行交易之前，所需的基本 gas 成本，以确保交易能够成功执行
     if (transaction.calculateUpfrontGasCost(transaction.getMaxGasPrice(), Wei.ZERO, 0).bitLength()
         > 256) {
       return ValidationResult.invalid(
           TransactionInvalidReason.UPFRONT_COST_EXCEEDS_UINT256,
           "Upfront gas cost cannot exceed 2^256 Wei");
     }
-
+    // 注：在以太坊的交易中，不同操作码（opcode）的执行费用确实是不同的，而这些费用通常在合约执行时通过 EVM 的指令集计算
+    // 1. 操作码的执行费用是在合约实际运行时计算的。EVM 在执行合约代码时会根据具体的操作码和其执行的上下文来累积 gas 消耗
+    // 2. 在合约执行之前，虽然可以计算一些基本的费用（如前置费用），但操作码的具体执行成本通常是在合约被调用并执行时动态计算的
+    // 3. 在某些情况下，合约的输入数据（即 Payload）的大小会影响整体的 gas 成本。特别是在合约创建或存储操作时，数据的大小可能会直接影响初始的 gas 消耗
+    // 4. 由于合约调用可以是复杂的，有多个分支和条件，事先准确预测操作码的所有费用是非常复杂的。因此，通常只计算一些基本的前置成本
+    // 5. 一旦合约开始执行，EVM 会逐条计算每个操作码的成本，包括读取存储、写入存储、执行逻辑等
     return ValidationResult.valid();
   }
 
@@ -342,10 +347,10 @@ public class MainnetTransactionValidator implements TransactionValidator {
     }
     final List<VersionedHash> versionedHashes = transaction.getVersionedHashes().get();
 
+    // Layer 2 解决方案通过将大量交易打包成一个 commitment，并将其哈希值提交到 Layer 1（以太坊主链），确保 Layer 1 能够验证和跟踪这些交易的有效性，而无需处理每笔交易的细节
     for (int i = 0; i < versionedHashes.size(); i++) {
       final KZGCommitment commitment = blobsWithCommitments.getKzgCommitments().get(i);
       final VersionedHash versionedHash = versionedHashes.get(i);
-
       if (versionedHash.getVersionId() != VersionedHash.SHA256_VERSION_ID) {
         return ValidationResult.invalid(
             TransactionInvalidReason.INVALID_BLOBS,
@@ -354,7 +359,7 @@ public class MainnetTransactionValidator implements TransactionValidator {
                 + ", found "
                 + versionedHash.getVersionId());
       }
-
+      // 数据完整性验证
       final VersionedHash calculatedVersionedHash = hashCommitment(commitment);
       if (!calculatedVersionedHash.equals(versionedHash)) {
         return ValidationResult.invalid(
@@ -380,7 +385,7 @@ public class MainnetTransactionValidator implements TransactionValidator {
                     .map(kp -> (Bytes) kp.getData())
                     .toList())
             .toArrayUnsafe();
-
+    // 通过 KZG 多项式承诺 技术，批量验证一组 blobs 和其相关的承诺值与证明值。这种批量验证是以太坊扩展提案 EIP-4844 实现的数据可用性保证的重要组成部分
     final boolean kzgVerification =
         CKZG4844JNI.verifyBlobKzgProofBatch(
             blobs, kzgCommitments, kzgProofs, blobsWithCommitments.getBlobs().size());

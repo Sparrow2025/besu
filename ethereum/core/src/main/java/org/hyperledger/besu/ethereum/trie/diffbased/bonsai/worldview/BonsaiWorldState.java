@@ -58,6 +58,12 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.rlp.RLP;
 import org.apache.tuweni.units.bigints.UInt256;
 
+/**
+ * BonsaiWorldState 是一种“扁平化”的世界状态存储结构。它通过将账户状态和合约存储直接存储为键值对，而不是传统的 MPT 树状结构，从而优化了读取和写入操作。这个结构主要用于提升交易处理时的效率
+ * 1. 扁平化的存储模型：直接将账户状态、存储键值对等数据扁平化存储到数据库中，省去了树形结构的遍历和重构过程
+ * 2. 即时更新：当交易执行时，BonsaiWorldState 可以立即更新对应的状态，而无需像 MPT 一样延迟到批量写入
+ * 3. 历史状态的修剪：Bonsai 通过修剪无用的历史状态，避免了不必要的存储开销
+ */
 public class BonsaiWorldState extends DiffBasedWorldState {
 
   protected final BonsaiCachedMerkleTrieLoader bonsaiCachedMerkleTrieLoader;

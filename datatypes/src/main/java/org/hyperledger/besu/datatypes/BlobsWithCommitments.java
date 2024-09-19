@@ -24,7 +24,15 @@ public class BlobsWithCommitments {
 
   /**
    * A record to hold the blob, commitment, proof and versioned hash for a blob.
+   * Blobs 可以包含交易或状态数据，而这些数据通过 commitments 来进行隐藏和保护
+   * 通过 proofs，用户可以验证 blobs 中的数据是否满足某些条件，而无需查看数据本身
+   * Versioned hashes 则用于跟踪不同版本的 blobs，或记录特定状态在不同区块的变迁
    *
+   * Layer2 Example:
+   * 1. 用户提交一批交易作为 blob
+   * 2. 系统对这批交易生成一个 commitment，承诺不会修改这些交易
+   * 3. 验证者可以通过 zk-SNARKs 提供 proof 来证明这些交易是有效的，而不披露交易内容
+   * 4. 在区块链中，这批交易的 blob 和相关的 versioned hash 被记录下来，以确保其唯一性和版本控制
    * @param blob The blob
    * @param kzgCommitment The commitment
    * @param kzgProof The proof

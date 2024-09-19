@@ -276,16 +276,17 @@ public class MainnetTransactionProcessor {
   }
 
   public TransactionProcessingResult processTransaction(
-      final WorldUpdater worldState,
-      final ProcessableBlockHeader blockHeader,
-      final Transaction transaction,
-      final Address miningBeneficiary,
-      final OperationTracer operationTracer,
-      final BlockHashLookup blockHashLookup,
-      final Boolean isPersistingPrivateState,
-      final TransactionValidationParams transactionValidationParams,
-      final PrivateMetadataUpdater privateMetadataUpdater,
-      final Wei blobGasPrice) {
+      final WorldUpdater worldState, // 当前世界状态的临时更新对象，它允许对账户和存储的临时更改，直到最终确定是否应用这些更改
+      final ProcessableBlockHeader blockHeader, // 与正在处理的区块相关的头信息，比如区块号、时间戳、难度等
+      final Transaction transaction, // 当前处理的交易对象，它包含了交易的所有关键信息，比如发送者、接收者、价值、gas 等
+      final Address miningBeneficiary, // 当前区块的矿工地址，用于奖励矿工
+      final OperationTracer operationTracer, // 用于追踪虚拟机执行过程中每个操作的对象，通常用于调试或分析
+      final BlockHashLookup blockHashLookup, // 提供区块哈希的查找功能，便于智能合约在执行过程中查找区块哈希
+      final Boolean isPersistingPrivateState, // 决定是否在处理后持久化状态，如果为 true，处理后的世界状态会被保存
+      final TransactionValidationParams transactionValidationParams, // 用于控制交易验证的各种参数，如是否跳过特定的验证规则
+      final PrivateMetadataUpdater privateMetadataUpdater, // 用于私有交易处理时的元数据更新
+      final Wei blobGasPrice // blob gas
+  ) {
     final EVMWorldUpdater evmWorldUpdater = new EVMWorldUpdater(worldState);
     try {
       final var transactionValidator = transactionValidatorFactory.get();
