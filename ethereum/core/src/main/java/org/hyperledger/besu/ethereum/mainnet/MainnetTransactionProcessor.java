@@ -306,19 +306,15 @@ public class MainnetTransactionProcessor {
       }
 
       final Address senderAddress = transaction.getSender();
+      // 获取sender
       final MutableAccount sender = evmWorldUpdater.getOrCreateSenderAccount(senderAddress);
-
-      validationResult =
-          transactionValidator.validateForSender(transaction, sender, transactionValidationParams);
+      validationResult = transactionValidator.validateForSender(transaction, sender, transactionValidationParams);
       if (!validationResult.isValid()) {
         LOG.debug("Invalid transaction: {}", validationResult.getErrorMessage());
         return TransactionProcessingResult.invalid(validationResult);
       }
-
       operationTracer.tracePrepareTransaction(evmWorldUpdater, transaction);
-
       final Set<Address> addressList = new BytesTrieSet<>(Address.SIZE);
-
       if (transaction.getAuthorizationList().isPresent()) {
         if (maybeAuthorityProcessor.isEmpty()) {
           throw new RuntimeException("Authority processor is required for 7702 transactions");
@@ -327,21 +323,20 @@ public class MainnetTransactionProcessor {
         maybeAuthorityProcessor.get().addContractToAuthority(evmWorldUpdater, transaction);
         addressList.addAll(evmWorldUpdater.authorizedCodeService().getAuthorities());
       }
-
+      // nonce + 1
       final long previousNonce = sender.incrementNonce();
       LOG.trace(
           "Incremented sender {} nonce ({} -> {})",
           senderAddress,
           previousNonce,
           sender.getNonce());
-
-      final Wei transactionGasPrice =
-          feeMarket.getTransactionPriceCalculator().price(transaction, blockHeader.getBaseFee());
-
+      // 计算交易费用
+      final Wei transactionGasPrice = feeMarket.getTransactionPriceCalculator().price(transaction, blockHeader.getBaseFee());
+      // 计算blob费用
       final long blobGas = gasCalculator.blobGasCost(transaction.getBlobCount());
-
-      final Wei upfrontGasCost =
-          transaction.getUpfrontGasCost(transactionGasPrice, blobGasPrice, blobGas);
+      // 预计费用
+      final Wei upfrontGasCost = transaction.getUpfrontGasCost(transactionGasPrice, blobGasPrice, blobGas);
+      // 扣除费用
       final Wei previousBalance = sender.decrementBalance(upfrontGasCost);
       LOG.trace(
           "Deducted sender {} upfront gas cost {} ({} -> {})",
@@ -349,7 +344,7 @@ public class MainnetTransactionProcessor {
           upfrontGasCost,
           previousBalance,
           sender.getBalance());
-
+      // 需要访问的地址列表
       final List<AccessListEntry> accessListEntries = transaction.getAccessList().orElse(List.of());
       // we need to keep a separate hash set of addresses in case they specify no storage.
       // No-storage is a common pattern, especially for Externally Owned Accounts
@@ -362,18 +357,18 @@ public class MainnetTransactionProcessor {
         storageList.putAll(address, storageKeys);
         accessListStorageCount += storageKeys.size();
       }
+      // 在交易或区块处理中，出块奖励接收者（coinbase）的账户被认为是“热的”，无需支付高额的“冷访问” gas 成本。这有利于优化矿工在其区块奖励和相关操作中的 gas 开销
       if (warmCoinbase) {
         addressList.add(miningBeneficiary);
       }
-
-      final long intrinsicGas =
-          gasCalculator.transactionIntrinsicGasCost(
-              transaction.getPayload(), transaction.isContractCreation());
-      final long accessListGas =
-          gasCalculator.accessListGasCost(accessListEntries.size(), accessListStorageCount);
+      // 计算出交易需要消耗的固有的cost
+      final long intrinsicGas = gasCalculator.transactionIntrinsicGasCost(transaction.getPayload(), transaction.isContractCreation());
+      // 访问地址消耗的gas
+      final long accessListGas = gasCalculator.accessListGasCost(accessListEntries.size(), accessListStorageCount);
+      // 设置代码消耗的gas(这里主要对AA账户进行授权操作)
       final long setCodeGas = gasCalculator.setCodeListGasCost(transaction.authorizationListSize());
-      final long gasAvailable =
-          transaction.getGasLimit() - intrinsicGas - accessListGas - setCodeGas;
+      // 减去上面3个开销后，还剩余的可用gas
+      final long gasAvailable = transaction.getGasLimit() - intrinsicGas - accessListGas - setCodeGas;
       LOG.trace(
           "Gas available for execution {} = {} - {} - {} - {} (limit - intrinsic - accessList - setCode)",
           gasAvailable,
@@ -381,7 +376,6 @@ public class MainnetTransactionProcessor {
           intrinsicGas,
           accessListGas,
           setCodeGas);
-
       final WorldUpdater worldUpdater = evmWorldUpdater.updater();
       final ImmutableMap.Builder<String, Object> contextVariablesBuilder =
           ImmutableMap.<String, Object>builder()
@@ -391,9 +385,7 @@ public class MainnetTransactionProcessor {
       if (privateMetadataUpdater != null) {
         contextVariablesBuilder.put(KEY_PRIVATE_METADATA_UPDATER, privateMetadataUpdater);
       }
-
       operationTracer.traceStartTransaction(worldUpdater, transaction);
-
       final MessageFrame.Builder commonMessageFrameBuilder =
           MessageFrame.builder()
               .maxStackSize(maxStackSize)
@@ -422,9 +414,8 @@ public class MainnetTransactionProcessor {
 
       final MessageFrame initialFrame;
       if (transaction.isContractCreation()) {
-        final Address contractAddress =
-            Address.contractAddress(senderAddress, sender.getNonce() - 1L);
-
+        // 生成CA地址
+        final Address contractAddress = Address.contractAddress(senderAddress, sender.getNonce() - 1L);
         final Bytes initCodeBytes = transaction.getPayload();
         Code code = contractCreationProcessor.getCodeFromEVMForCreation(initCodeBytes);
         initialFrame =
@@ -438,6 +429,7 @@ public class MainnetTransactionProcessor {
       } else {
         @SuppressWarnings("OptionalGetWithoutIsPresent") // isContractCall tests isPresent
         final Address to = transaction.getTo().get();
+        // 获取接收者账户信息，这里是处理接收者是CA的情况. 因为可能涉及到执行合约的代码，所以需要先获取合约的代码。MessageFrame的定义就是包含所有信息
         final Optional<Account> maybeContract = Optional.ofNullable(evmWorldUpdater.get(to));
         initialFrame =
             commonMessageFrameBuilder
@@ -445,14 +437,10 @@ public class MainnetTransactionProcessor {
                 .address(to)
                 .contract(to)
                 .inputData(transaction.getPayload())
-                .code(
-                    maybeContract
-                        .map(c -> messageCallProcessor.getCodeFromEVM(c.getCodeHash(), c.getCode()))
-                        .orElse(CodeV0.EMPTY_CODE))
+                .code(maybeContract.map(c -> messageCallProcessor.getCodeFromEVM(c.getCodeHash(), c.getCode())).orElse(CodeV0.EMPTY_CODE))
                 .build();
       }
       Deque<MessageFrame> messageFrameStack = initialFrame.getMessageFrameStack();
-
       if (initialFrame.getCode().isValid()) {
         while (!messageFrameStack.isEmpty()) {
           process(messageFrameStack.peekFirst(), operationTracer);
@@ -604,7 +592,6 @@ public class MainnetTransactionProcessor {
 
   public void process(final MessageFrame frame, final OperationTracer operationTracer) {
     final AbstractMessageProcessor executor = getMessageProcessor(frame.getType());
-
     executor.process(frame, operationTracer);
   }
 

@@ -57,6 +57,7 @@ import org.apache.tuweni.bytes.MutableBytes;
 import org.apache.tuweni.units.bigints.UInt256;
 
 /**
+ * 用来封装一个交易的所有信息
  * A container object for all the states associated with a message.
  *
  * <p>A message corresponds to an interaction between two accounts. A Transaction spawns at least
@@ -1664,7 +1665,8 @@ public class MessageFrame {
       WorldUpdater updater;
       boolean newStatic;
       TxValues newTxValues;
-
+      // 当一个合约调用另一个合约时，会创建一个新的消息框架
+      // parentMessageFrame 指向调用它的合约的消息框架，这样可以维护调用链的结构
       if (parentMessageFrame == null) {
         newTxValues =
             new TxValues(

@@ -74,6 +74,7 @@ public class MessageCallProcessor extends AbstractMessageProcessor {
       // Check first if the message call is to a pre-compile contract
       final PrecompiledContract precompile = precompiles.get(frame.getContractAddress());
       if (precompile != null) {
+        // 这里就是执行合约
         executePrecompile(precompile, frame, operationTracer);
       } else {
         frame.setState(MessageFrame.State.CODE_EXECUTING);
@@ -149,12 +150,14 @@ public class MessageCallProcessor extends AbstractMessageProcessor {
       final PrecompiledContract contract,
       final MessageFrame frame,
       final OperationTracer operationTracer) {
+    // 这里获取执行合约所需要的gas
     final long gasRequirement = contract.gasRequirement(frame.getInputData());
-    if (frame.getRemainingGas() < gasRequirement) {
+    if (frame.getRemainingGas() < gasRequirement) { // 剩余gas少于合约执行所需的gas，直接异常终止
       frame.setExceptionalHaltReason(Optional.of(ExceptionalHaltReason.INSUFFICIENT_GAS));
       frame.setState(MessageFrame.State.EXCEPTIONAL_HALT);
       operationTracer.tracePrecompileCall(frame, gasRequirement, null);
     } else {
+      // 进一步减去消耗的gas
       frame.decrementRemainingGas(gasRequirement);
       final PrecompiledContract.PrecompileContractResult result =
           contract.computePrecompile(frame.getInputData(), frame);

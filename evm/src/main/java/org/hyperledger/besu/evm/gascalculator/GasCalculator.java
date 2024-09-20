@@ -648,7 +648,10 @@ public interface GasCalculator {
 
   /**
    * Returns the upfront gas cost for EIP 7702 operation.
-   *
+   * EIP-7702 是一个针对以太坊的提案，主要目的是改进账户抽象。在以太坊中，通常用户使用的是外部拥有账户（EOA），而账户抽象的目标是让这些账户能够像智能合约账户一样操作，提供更多的灵活性和安全性
+   * EIP-7702 的主要机制是允许一个 EOA 在单笔交易期间临时包含一些智能合约代码。这使得 EOA 在该交易中可以暂时拥有智能合约的特性，例如批量执行操作、交易费用赞助等。交易完成后，EOA 会恢复到原本的状态，这样既保留了智能合约的功能，又避免了永久性地修改账户的结构
+   * EIP-7702 的优势在于，它不需要像之前的提案（如 EIP-3074）那样引入新的操作码（如 AUTH 和 AUTHCALL），而是通过现有的机制来实现这些功能，提升了向前兼容性
+   * 简而言之，EIP-7702 提供了一个灵活的方式，让传统的外部拥有账户可以在不永久改变账户的情况下，暂时获得智能合约的能力，从而提高以太坊网络的可用性和安全性
    * @param authorizationListLength The length of the authorization list
    * @return the gas cost
    */

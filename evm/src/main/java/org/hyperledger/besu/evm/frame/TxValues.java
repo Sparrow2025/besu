@@ -50,6 +50,12 @@ import org.apache.tuweni.bytes.Bytes32;
  * @param selfDestructs The set of addresses that self-destructs
  * @param gasRefunds The gas refunds
  */
+
+/**
+ * 使用 record 定义类时，编译器会自动生成构造函数、访问器（getter）、equals()、hashCode() 和 toString() 方法，减少了样板代码
+ * 记录类的实例是不可变的，这意味着一旦创建就不能修改其属性。这在多线程编程中尤其有用，因为它可以减少并发问题
+ * 记录类明确表示其主要目的是承载数据，这使得代码的可读性和维护性更高
+ */
 public record TxValues(
     BlockHashLookup blockHashLookup,
     int maxStackSize,

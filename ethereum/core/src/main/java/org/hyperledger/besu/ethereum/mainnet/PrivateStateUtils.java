@@ -16,6 +16,7 @@ package org.hyperledger.besu.ethereum.mainnet;
 
 public class PrivateStateUtils {
 
+  // 标识系统是否正在持久化私有状态
   public static String KEY_IS_PERSISTING_PRIVATE_STATE = "isPersistingPrivateState";
   public static String KEY_TRANSACTION = "transaction";
   public static String KEY_TRANSACTION_HASH = "transactionHash";
