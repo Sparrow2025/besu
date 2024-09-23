@@ -40,11 +40,8 @@ public class MainnetBlockImporter implements BlockImporter {
     if (context.getBlockchain().contains(block.getHash())) {
       return new BlockImportResult(BlockImportStatus.ALREADY_IMPORTED);
     }
-
-    final var result =
-        blockValidator.validateAndProcessBlock(
-            context, block, headerValidationMode, ommerValidationMode);
-
+    // 检查区块信息
+    final var result = blockValidator.validateAndProcessBlock(context, block, headerValidationMode, ommerValidationMode);
     if (result.isSuccessful()) {
       result
           .getYield()
@@ -52,7 +49,6 @@ public class MainnetBlockImporter implements BlockImporter {
               processingOutputs ->
                   context.getBlockchain().appendBlock(block, processingOutputs.getReceipts()));
     }
-
     return new BlockImportResult(result.isSuccessful());
   }
 

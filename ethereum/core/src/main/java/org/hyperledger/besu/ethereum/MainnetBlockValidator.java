@@ -160,24 +160,20 @@ public class MainnetBlockValidator implements BlockValidator {
         handleFailedBlockProcessing(block, retval, false);
         return retval;
       }
+      // 处理区块
       var result = processBlock(context, worldState, block);
       if (result.isFailed()) {
         handleFailedBlockProcessing(block, result, shouldRecordBadBlock);
         return result;
       } else {
-        List<TransactionReceipt> receipts =
-            result.getYield().map(BlockProcessingOutputs::getReceipts).orElse(new ArrayList<>());
-        Optional<List<Request>> maybeRequests =
-            result.getYield().flatMap(BlockProcessingOutputs::getRequests);
-        if (!blockBodyValidator.validateBody(
-            context, block, receipts, maybeRequests, worldState.rootHash(), ommerValidationMode)) {
+        List<TransactionReceipt> receipts = result.getYield().map(BlockProcessingOutputs::getReceipts).orElse(new ArrayList<>());
+        Optional<List<Request>> maybeRequests = result.getYield().flatMap(BlockProcessingOutputs::getRequests);
+        if (!blockBodyValidator.validateBody(context, block, receipts, maybeRequests, worldState.rootHash(), ommerValidationMode)) {
           result = new BlockProcessingResult("failed to validate output of imported block");
           handleFailedBlockProcessing(block, result, shouldRecordBadBlock);
           return result;
         }
-
-        return new BlockProcessingResult(
-            Optional.of(new BlockProcessingOutputs(worldState, receipts, maybeRequests)));
+        return new BlockProcessingResult(Optional.of(new BlockProcessingOutputs(worldState, receipts, maybeRequests)));
       }
     } catch (MerkleTrieException ex) {
       context

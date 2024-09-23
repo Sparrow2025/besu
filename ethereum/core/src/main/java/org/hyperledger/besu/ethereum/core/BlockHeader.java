@@ -44,27 +44,27 @@ public class BlockHeader extends SealableBlockHeader
   private final Supplier<ParsedExtraData> parsedExtraData;
 
   public BlockHeader(
-      final Hash parentHash,
-      final Hash ommersHash,
-      final Address coinbase,
-      final Hash stateRoot,
-      final Hash transactionsRoot,
-      final Hash receiptsRoot,
-      final LogsBloomFilter logsBloom,
-      final Difficulty difficulty,
-      final long number,
-      final long gasLimit,
-      final long gasUsed,
-      final long timestamp,
-      final Bytes extraData,
-      final Wei baseFee,
-      final Bytes32 mixHashOrPrevRandao,
-      final long nonce,
-      final Hash withdrawalsRoot,
-      final Long blobGasUsed,
-      final BlobGas excessBlobGas,
-      final Bytes32 parentBeaconBlockRoot,
-      final Hash requestsRoot,
+      final Hash parentHash, // 上一个区块的hash
+      final Hash ommersHash, // 叔块的hash
+      final Address coinbase, // 矿工地址
+      final Hash stateRoot, // 状态根
+      final Hash transactionsRoot, // 交易根
+      final Hash receiptsRoot, // 收据根
+      final LogsBloomFilter logsBloom, // 日志布隆过滤器
+      final Difficulty difficulty, // 当前区块的难度
+      final long number, // 区块高度
+      final long gasLimit, // gas限制
+      final long gasUsed, // gas使用量
+      final long timestamp, // 时间戳
+      final Bytes extraData, // 额外数据
+      final Wei baseFee, // baseFee
+      final Bytes32 mixHashOrPrevRandao, // mixHash帮助计算区块的计算工作量是否有效, prevRandao是用于 PoS 网络中提供随机性来源的一个重要部分
+      final long nonce, // PoW中nonce是矿工为了满足网络的难度要求而必须调整的数字 PoS中nonce被弃用,转而使用prevRandao来提供系统随机性
+      final Hash withdrawalsRoot, // 用于管理和验证提款（withdrawals）相关的数据
+      final Long blobGasUsed, // 用于存储当前区块中存储和处理数据 blob（大型数据块）所消耗的 Gas 数量
+      final BlobGas excessBlobGas, // 表示当前区块链状态下 Blob Gas 超过目标数量的字段
+      final Bytes32 parentBeaconBlockRoot, // 用于指向当前区块的父级信标区块的哈希值
+      final Hash requestsRoot, // 存储和处理执行层（Execution Layer, EL）中的请求
       final BlockHeaderFunctions blockHeaderFunctions) {
     super(
         parentHash,

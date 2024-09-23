@@ -28,10 +28,10 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.units.bigints.UInt64;
 
 public class Withdrawal implements org.hyperledger.besu.plugin.data.Withdrawal {
-  private final UInt64 index;
-  private final UInt64 validatorIndex;
-  private final Address address;
-  private final GWei amount;
+  private final UInt64 index; // 提款的唯一标识符，每个提款都会分配一个唯一的index，用于区分不同的提款操作
+  private final UInt64 validatorIndex; // 该字段表示发起提款的验证者的索引。每个验证者在系统中都有一个唯一的索引，这个索引用于标识谁发起了此次提款请求。它通常与验证者的身份和质押账户绑定
+  private final Address address; // 提款的目标地址
+  private final GWei amount; // 提款金额
 
   public Withdrawal(
       final UInt64 index, final UInt64 validatorIndex, final Address address, final GWei amount) {

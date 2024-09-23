@@ -143,7 +143,7 @@ public class MessageCallProcessor extends AbstractMessageProcessor {
 
   /**
    * Executes this message call knowing that it is a call to the provided pre-compiled contract.
-   *
+   * executePrecompile 方法中没有普通智能合约的执行过程，因为它处理的是预编译合约的直接调用，而这些合约的逻辑是硬编码在客户端中的。你应该查找这些预编译逻辑的具体实现，而不是像常规智能合约那样寻找 EVM 执行逻辑
    * @param contract The contract this is a message call to.
    */
   private void executePrecompile(
@@ -159,10 +159,10 @@ public class MessageCallProcessor extends AbstractMessageProcessor {
     } else {
       // 进一步减去消耗的gas
       frame.decrementRemainingGas(gasRequirement);
-      final PrecompiledContract.PrecompileContractResult result =
-          contract.computePrecompile(frame.getInputData(), frame);
+      final PrecompiledContract.PrecompileContractResult result = contract.computePrecompile(frame.getInputData(), frame);
       operationTracer.tracePrecompileCall(frame, gasRequirement, result.getOutput());
       if (result.isRefundGas()) {
+        // 是否退还gas
         frame.incrementRemainingGas(gasRequirement);
       }
       if (frame.getState() == MessageFrame.State.REVERT) {

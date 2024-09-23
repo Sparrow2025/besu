@@ -136,7 +136,7 @@ public abstract class AbstractBlockProcessor implements BlockProcessor {
         return new BlockProcessingResult(Optional.empty(), "provided gas insufficient");
       }
       final WorldUpdater blockUpdater = worldState.updater();
-
+      // 这里其实是执行交易
       TransactionProcessingResult transactionProcessingResult =
           getTransactionProcessingResult(
               preProcessingContext,
@@ -162,22 +162,19 @@ public abstract class AbstractBlockProcessor implements BlockProcessor {
         }
         return new BlockProcessingResult(Optional.empty(), errorMessage);
       }
-
       blockUpdater.commit();
-
+      // 更新currentGasUsed
       currentGasUsed += transaction.getGasLimit() - transactionProcessingResult.getGasRemaining();
       if (transaction.getVersionedHashes().isPresent()) {
-        currentBlobGasUsed +=
-            (transaction.getVersionedHashes().get().size() * CancunGasCalculator.BLOB_GAS_PER_BLOB);
+        // 更新currentBlobGasUsed
+        currentBlobGasUsed += (transaction.getVersionedHashes().get().size() * CancunGasCalculator.BLOB_GAS_PER_BLOB);
       }
-
-      final TransactionReceipt transactionReceipt =
-          transactionReceiptFactory.create(
-              transaction.getType(), transactionProcessingResult, worldState, currentGasUsed);
+      // 创建收据
+      final TransactionReceipt transactionReceipt = transactionReceiptFactory.create(transaction.getType(), transactionProcessingResult, worldState, currentGasUsed);
       receipts.add(transactionReceipt);
     }
-    if (blockHeader.getBlobGasUsed().isPresent()
-        && currentBlobGasUsed != blockHeader.getBlobGasUsed().get()) {
+    // 检查blobGasUsed是否和header中的一致
+    if (blockHeader.getBlobGasUsed().isPresent() && currentBlobGasUsed != blockHeader.getBlobGasUsed().get()) {
       String errorMessage =
           String.format(
               "block did not consume expected blob gas: header %d, transactions %d",
@@ -185,20 +182,20 @@ public abstract class AbstractBlockProcessor implements BlockProcessor {
       LOG.error(errorMessage);
       return new BlockProcessingResult(Optional.empty(), errorMessage);
     }
-    final Optional<WithdrawalsProcessor> maybeWithdrawalsProcessor =
-        protocolSpec.getWithdrawalsProcessor();
+    final Optional<WithdrawalsProcessor> maybeWithdrawalsProcessor = protocolSpec.getWithdrawalsProcessor();
+    // 处理提现交易
     if (maybeWithdrawalsProcessor.isPresent() && maybeWithdrawals.isPresent()) {
       try {
-        maybeWithdrawalsProcessor
-            .get()
-            .processWithdrawals(maybeWithdrawals.get(), worldState.updater());
+        maybeWithdrawalsProcessor.get().processWithdrawals(maybeWithdrawals.get(), worldState.updater());
       } catch (final Exception e) {
         LOG.error("failed processing withdrawals", e);
         return new BlockProcessingResult(Optional.empty(), e);
       }
     }
-
     // EIP-7685: process EL requests
+    // EIP-7685 是关于在以太坊执行层（Execution Layer, EL）中处理通用请求的提案，旨在规范化管理各种操作，比如存款、提款和验证者管理。它提出了一种灵活的结构，处理这些在以太坊执行层和共识层（Consensus Layer, CL）之间的请求。提案的主要目标是确保这些请求能够被有效处理，而不需要执行层完全理解它们的内容，从而保持系统的通用性
+    // EIP-7685 处理请求的数据被视为“不透明数据”，也就是说，这些数据不会被执行层完全解析，这使得协议能够灵活处理不同类型的请求。关于相同类型请求的排序，EIP-7685 不定义具体的排序方式，而是由特定的请求类型决定
+    // 这个提案为未来的扩展留出了空间，尤其是在处理验证者相关的操作时，如存款和提款。EIP-7685 还可能应用于未来的需求，确保以太坊系统能够灵活应对执行层和共识层之间的进一步交互
     final Optional<RequestProcessorCoordinator> requestProcessor =
         protocolSpec.getRequestProcessorCoordinator();
     Optional<List<Request>> maybeRequests = Optional.empty();
@@ -211,10 +208,8 @@ public abstract class AbstractBlockProcessor implements BlockProcessor {
               receipts,
               blockHashLookup,
               OperationTracer.NO_TRACING);
-
       maybeRequests = requestProcessor.get().process(context);
     }
-
     if (!rewardCoinbase(worldState, blockHeader, ommers, skipZeroBlockRewards)) {
       // no need to log, rewardCoinbase logs the error.
       if (worldState instanceof BonsaiWorldState) {
@@ -235,9 +230,8 @@ public abstract class AbstractBlockProcessor implements BlockProcessor {
       LOG.error("failed persisting block", e);
       return new BlockProcessingResult(Optional.empty(), e);
     }
-
-    return new BlockProcessingResult(
-        Optional.of(new BlockProcessingOutputs(worldState, receipts, maybeRequests)));
+    // 一个区块返回，包含了区块处理的结果，收据，和通用请求
+    return new BlockProcessingResult(Optional.of(new BlockProcessingOutputs(worldState, receipts, maybeRequests)));
   }
 
   protected Optional<PreprocessingContext> runBlockPreProcessing(

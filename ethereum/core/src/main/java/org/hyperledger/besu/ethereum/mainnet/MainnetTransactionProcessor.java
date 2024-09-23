@@ -443,6 +443,7 @@ public class MainnetTransactionProcessor {
       Deque<MessageFrame> messageFrameStack = initialFrame.getMessageFrameStack();
       if (initialFrame.getCode().isValid()) {
         while (!messageFrameStack.isEmpty()) {
+          // 这里循环执行预编码的合约，直到栈为空
           process(messageFrameStack.peekFirst(), operationTracer);
         }
       } else {
@@ -453,7 +454,7 @@ public class MainnetTransactionProcessor {
                 TransactionInvalidReason.EOF_CODE_INVALID,
                 ((CodeInvalid) initialFrame.getCode()).getInvalidReason());
       }
-
+      // 如果所有的预编码合约执行完毕，就提交世界状态
       if (initialFrame.getState() == MessageFrame.State.COMPLETED_SUCCESS) {
         worldUpdater.commit();
       } else {
@@ -475,11 +476,16 @@ public class MainnetTransactionProcessor {
 
       // Refund the sender by what we should and pay the miner fee (note that we're doing them one
       // after the other so that if it is the same account somehow, we end up with the right result)
-      final long selfDestructRefund =
-          gasCalculator.getSelfDestructRefundAmount() * initialFrame.getSelfDestructs().size();
+      // 在以太坊中，当合约执行 SELFDESTRUCT 指令时，可以获得一部分 Gas 返还，主要是为了奖励清理区块链状态，减轻状态增长的压力
+      // 自毁合约时，释放了占用的存储空间，因此会获得 Gas 返还作为奖励(多少单位)
+      final long selfDestructRefund = gasCalculator.getSelfDestructRefundAmount() * initialFrame.getSelfDestructs().size();
+      // 基础费用的返还(多少单位)
       final long baseRefundGas = initialFrame.getGasRefund() + selfDestructRefund;
+      // 计算返还的Gas(多少单位)
       final long refundedGas = refunded(transaction, initialFrame.getRemainingGas(), baseRefundGas);
+      // 计算返还的Wei
       final Wei refundedWei = transactionGasPrice.multiply(refundedGas);
+      // 返还之前的余额
       final Wei balancePriorToRefund = sender.getBalance();
       sender.incrementBalance(refundedWei);
       LOG.atTrace()
@@ -489,8 +495,8 @@ public class MainnetTransactionProcessor {
           .addArgument(balancePriorToRefund)
           .addArgument(sender.getBalance())
           .log();
+      // 计算交易的Gas使用量
       final long gasUsedByTransaction = transaction.getGasLimit() - initialFrame.getRemainingGas();
-
       // update the coinbase
       final long usedGas = transaction.getGasLimit() - refundedGas;
       final CoinbaseFeePriceCalculator coinbaseCalculator;
@@ -509,16 +515,13 @@ public class MainnetTransactionProcessor {
       } else {
         coinbaseCalculator = CoinbaseFeePriceCalculator.frontier();
       }
-
-      final Wei coinbaseWeiDelta =
-          coinbaseCalculator.price(usedGas, transactionGasPrice, blockHeader.getBaseFee());
-
+      // 挖矿着应该从交易中得到的奖励
+      final Wei coinbaseWeiDelta = coinbaseCalculator.price(usedGas, transactionGasPrice, blockHeader.getBaseFee());
       operationTracer.traceBeforeRewardTransaction(worldUpdater, transaction, coinbaseWeiDelta);
-
+      // 区块奖励
       final var coinbase = evmWorldUpdater.getOrCreate(miningBeneficiary);
       coinbase.incrementBalance(coinbaseWeiDelta);
       evmWorldUpdater.authorizedCodeService().resetAuthorities();
-
       operationTracer.traceEndTransaction(
           worldUpdater,
           transaction,
@@ -528,13 +531,10 @@ public class MainnetTransactionProcessor {
           gasUsedByTransaction,
           initialFrame.getSelfDestructs(),
           0L);
-
       initialFrame.getSelfDestructs().forEach(evmWorldUpdater::deleteAccount);
-
       if (clearEmptyAccounts) {
         evmWorldUpdater.clearAccountsThatAreEmpty();
       }
-
       if (initialFrame.getState() == MessageFrame.State.COMPLETED_SUCCESS) {
         return TransactionProcessingResult.successful(
             initialFrame.getLogs(),

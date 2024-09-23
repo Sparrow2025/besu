@@ -74,10 +74,10 @@ public class TransactionProcessingResult
   }
 
   public static TransactionProcessingResult successful(
-      final List<Log> logs,
-      final long gasUsedByTransaction,
-      final long gasRemaining,
-      final Bytes output,
+      final List<Log> logs, // 产生的日志
+      final long gasUsedByTransaction, // 交易消耗的 gas
+      final long gasRemaining, // 剩余的 gas
+      final Bytes output, // 交易执行的输出
       final ValidationResult<TransactionInvalidReason> validationResult) {
     return new TransactionProcessingResult(
         Status.SUCCESSFUL,
