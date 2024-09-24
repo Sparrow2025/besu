@@ -28,6 +28,8 @@ public abstract class CompactEncoding {
    * Converts a byte sequence into a path by splitting each byte into two nibbles. The resulting
    * path is terminated with a leaf terminator.
    *
+   * 通过将每个字节分成两个小块，将字节序列转换为路径。生成的路径以叶子终止符结束
+   *
    * @param bytes the byte sequence to convert into a path
    * @return the resulting path
    */

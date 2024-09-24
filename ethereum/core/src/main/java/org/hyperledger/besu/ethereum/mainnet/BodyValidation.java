@@ -60,15 +60,9 @@ public final class BodyValidation {
    */
   public static Hash transactionsRoot(final List<Transaction> transactions) {
     final MerkleTrie<Bytes, Bytes> trie = trie();
-
+    // Encode the transactions and put them into the trie
     IntStream.range(0, transactions.size())
-        .forEach(
-            i ->
-                trie.put(
-                    indexKey(i),
-                    TransactionEncoder.encodeOpaqueBytes(
-                        transactions.get(i), EncodingContext.BLOCK_BODY)));
-
+        .forEach(i -> trie.put(indexKey(i), TransactionEncoder.encodeOpaqueBytes(transactions.get(i), EncodingContext.BLOCK_BODY)));
     return Hash.wrap(trie.getRootHash());
   }
 

@@ -51,6 +51,8 @@ public abstract class SimpleMerkleTrie<K extends Bytes, V> implements MerkleTrie
    */
   public SimpleMerkleTrie(final Function<V, Bytes> valueSerializer) {
     this.nodeFactory = new DefaultNodeFactory<>(valueSerializer);
+    // NullNode用于表示当前Trie为空或尚未初始化。这使得在Trie的初始状态下能够安全地进行插入和查找操作
+    // 使用NullNode作为根节点可以确保在Trie的操作中，有一个统一的起始点，使得状态的管理和验证变得更加简单
     this.root = NullNode.instance();
   }
 

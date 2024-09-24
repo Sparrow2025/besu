@@ -22,6 +22,7 @@ import org.apache.tuweni.bytes.Bytes32;
 
 public interface Node<V> {
 
+  // Node#accept方法用于实现访问者模式（Visitor Pattern），允许对Trie中的节点执行特定的操作。具体来说，这个方法接受一个PathNodeVisitor实例和一个Bytes参数
   Node<V> accept(PathNodeVisitor<V> visitor, Bytes path);
 
   void accept(NodeVisitor<V> visitor);
