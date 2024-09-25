@@ -25,6 +25,10 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 
+/**
+ * 用于存储和管理世界状态的预映像（preimage）数据
+ * 1. 可用于快速恢复
+ */
 public class WorldStatePreimageKeyValueStorage implements WorldStatePreimageStorage {
   private final KeyValueStorage keyValueStorage;
 

@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 /**
  * The WorldStateProofProvider class is responsible for providing proofs for world state entries. It
  * interacts with the underlying storage and trie data structures to generate proofs.
+ * WorldStateProofProvider类负责为世界状态项提供证明。它与底层存储和trie数据结构交互以生成证明
  */
 public class WorldStateProofProvider {
 

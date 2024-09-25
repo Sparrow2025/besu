@@ -34,6 +34,9 @@ import java.util.stream.Stream;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
+/**
+ * 实现世界状态的键值存储
+ */
 public class ForestWorldStateKeyValueStorage implements WorldStateKeyValueStorage {
 
   private final Subscribers<NodesAddedListener> nodeAddedListeners = Subscribers.create();

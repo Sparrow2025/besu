@@ -45,11 +45,10 @@ public class ForestWorldStateArchive implements WorldStateArchive {
   private static final Hash EMPTY_ROOT_HASH = Hash.wrap(MerkleTrie.EMPTY_TRIE_NODE_HASH);
 
   public ForestWorldStateArchive(
-      final WorldStateStorageCoordinator worldStateStorageCoordinator,
-      final WorldStatePreimageStorage preimageStorage,
+      final WorldStateStorageCoordinator worldStateStorageCoordinator, //
+      final WorldStatePreimageStorage preimageStorage, // 用于存储和管理世界状态的预映像（preimage）数据
       final EvmConfiguration evmConfiguration) {
-    this.worldStateKeyValueStorage =
-        worldStateStorageCoordinator.getStrategy(ForestWorldStateKeyValueStorage.class);
+    this.worldStateKeyValueStorage = worldStateStorageCoordinator.getStrategy(ForestWorldStateKeyValueStorage.class);
     this.preimageStorage = preimageStorage;
     this.worldStateProof = new WorldStateProofProvider(worldStateStorageCoordinator);
     this.evmConfiguration = evmConfiguration;
@@ -66,19 +65,15 @@ public class ForestWorldStateArchive implements WorldStateArchive {
   }
 
   @Override
-  public Optional<MutableWorldState> getMutable(
-      final BlockHeader blockHeader, final boolean isPersistingState) {
+  public Optional<MutableWorldState> getMutable(final BlockHeader blockHeader, final boolean isPersistingState) {
     return getMutable(blockHeader.getStateRoot(), blockHeader.getHash());
   }
 
-  @Override
-  public Optional<MutableWorldState> getMutable(final Hash rootHash, final Hash blockHash) {
+  @Override  public Optional<MutableWorldState> getMutable(final Hash rootHash, final Hash blockHash) {
     if (!worldStateKeyValueStorage.isWorldStateAvailable(rootHash)) {
       return Optional.empty();
     }
-    return Optional.of(
-        new ForestMutableWorldState(
-            rootHash, worldStateKeyValueStorage, preimageStorage, evmConfiguration));
+    return Optional.of(new ForestMutableWorldState(rootHash, worldStateKeyValueStorage, preimageStorage, evmConfiguration));
   }
 
   @Override

@@ -26,6 +26,12 @@ import java.util.function.Function;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
+/**
+ * 主要负责协调不同的世界状态存储实现
+ * 提供一个统一的接口，允许不同的存储实现（如Bonsai和Forest）进行集成和切换
+ * 管理世界状态的读取和写入操作，确保在不同存储实现之间的数据一致性
+ * 通过选择合适的存储实现，优化状态操作的性能，满足不同场景的需求
+ */
 public class WorldStateStorageCoordinator {
   private final WorldStateKeyValueStorage worldStateKeyValueStorage;
 

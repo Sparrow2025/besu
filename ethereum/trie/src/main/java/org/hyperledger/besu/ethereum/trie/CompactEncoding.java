@@ -22,6 +22,7 @@ import org.apache.tuweni.bytes.MutableBytes;
 public abstract class CompactEncoding {
   private CompactEncoding() {}
 
+  // 通常用于标识叶子节点的终止标记
   public static final byte LEAF_TERMINATOR = 0x10;
 
   /**

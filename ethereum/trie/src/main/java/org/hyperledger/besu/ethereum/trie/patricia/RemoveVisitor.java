@@ -40,7 +40,7 @@ public class RemoveVisitor<V> implements PathNodeVisitor<V> {
     final int commonPathLength = extensionPath.commonPrefixLength(path);
     assert commonPathLength < path.size()
         : "Visiting path doesn't end with a non-matching terminator";
-
+    // 如果commonPath和extensionPath长度相等，说明当前extensionNode的child需要更改(可能不是下一级更改，可能是在很多层级之后的修改)
     if (commonPathLength == extensionPath.size()) {
       final Node<V> newChild = extensionNode.getChild().accept(this, path.slice(commonPathLength));
       return extensionNode.replaceChild(newChild);
@@ -59,11 +59,14 @@ public class RemoveVisitor<V> implements PathNodeVisitor<V> {
     if (childIndex == CompactEncoding.LEAF_TERMINATOR) {
       return branchNode.removeValue();
     }
-
     final Node<V> updatedChild = branchNode.child(childIndex).accept(this, path.slice(1));
+    // 如果更新后的child为NULL_NODE_RESULT，说明该child节点已经被删除，需要将其从BranchNode中删除
     return branchNode.replaceChild(childIndex, updatedChild, allowFlatten);
   }
 
+  /**
+   * 不需要对LeafNode节点做太多处理，如果匹配到只需要返回NULL_NODE_RESULT即可，在上层的BranchNode中会将指向其的指针删除
+   */
   @Override
   public Node<V> visit(final LeafNode<V> leafNode, final Bytes path) {
     final Bytes leafPath = leafNode.getPath();

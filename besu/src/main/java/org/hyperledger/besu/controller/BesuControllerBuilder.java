@@ -1100,10 +1100,8 @@ public abstract class BesuControllerBuilder implements MiningParameterOverrides 
             evmConfiguration);
       }
       case FOREST -> {
-        final WorldStatePreimageStorage preimageStorage =
-            storageProvider.createWorldStatePreimageStorage();
-        yield new ForestWorldStateArchive(
-            worldStateStorageCoordinator, preimageStorage, evmConfiguration);
+        final WorldStatePreimageStorage preimageStorage = storageProvider.createWorldStatePreimageStorage();
+        yield new ForestWorldStateArchive(worldStateStorageCoordinator, preimageStorage, evmConfiguration);
       }
       default ->
           throw new IllegalStateException(

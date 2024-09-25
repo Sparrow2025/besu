@@ -37,7 +37,9 @@ import java.util.stream.IntStream;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.units.bigints.UInt256;
 
-/** A utility class for body validation tasks. */
+/** A utility class for body validation tasks.
+ *  交易信息，提款信息，请求信息，交易回执信息都会取构建MPT树从而得到rootHash
+ * */
 public final class BodyValidation {
 
   private BodyValidation() {

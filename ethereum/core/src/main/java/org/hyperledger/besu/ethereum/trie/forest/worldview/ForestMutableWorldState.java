@@ -355,8 +355,7 @@ public class ForestMutableWorldState implements MutableWorldState {
     }
   }
 
-  protected static class Updater
-      extends AbstractWorldUpdater<ForestMutableWorldState, WorldStateAccount> {
+  protected static class Updater extends AbstractWorldUpdater<ForestMutableWorldState, WorldStateAccount> {
 
     protected Updater(
         final ForestMutableWorldState world, final EvmConfiguration evmConfiguration) {
@@ -403,7 +402,6 @@ public class ForestMutableWorldState implements MutableWorldState {
 
       for (final UpdateTrackingAccount<WorldStateAccount> updated : getUpdatedAccounts()) {
         final WorldStateAccount origin = updated.getWrappedAccount();
-
         // Save the code in key-value storage ...
         Hash codeHash = origin == null ? Hash.EMPTY : origin.getCodeHash();
         if (updated.codeWasUpdated()) {
@@ -411,7 +409,7 @@ public class ForestMutableWorldState implements MutableWorldState {
           wrapped.updatedAccountCode.put(updated.getAddress(), updated.getCode());
         }
         // ...and storage in the account trie first.
-        final boolean freshState = origin == null || updated.getStorageWasCleared();
+        final boolean freshState = origin == null || updated.getStorageWasCleared(); // 一个全新的、未修改的世界状态视图
         Hash storageRoot = freshState ? Hash.EMPTY_TRIE_HASH : origin.getStorageRoot();
         if (freshState) {
           wrapped.updatedStorageTries.remove(updated.getAddress());
@@ -419,15 +417,10 @@ public class ForestMutableWorldState implements MutableWorldState {
         final Map<UInt256, UInt256> updatedStorage = updated.getUpdatedStorage();
         if (!updatedStorage.isEmpty()) {
           // Apply any storage updates
-          final MerkleTrie<Bytes32, Bytes> storageTrie =
-              freshState
-                  ? wrapped.newAccountStorageTrie(Hash.EMPTY_TRIE_HASH)
-                  : origin.storageTrie();
+          final MerkleTrie<Bytes32, Bytes> storageTrie = freshState ? wrapped.newAccountStorageTrie(Hash.EMPTY_TRIE_HASH) : origin.storageTrie();
           wrapped.updatedStorageTries.put(updated.getAddress(), storageTrie);
-          final TreeSet<Map.Entry<UInt256, UInt256>> entries =
-              new TreeSet<>(Map.Entry.comparingByKey());
+          final TreeSet<Map.Entry<UInt256, UInt256>> entries = new TreeSet<>(Map.Entry.comparingByKey());
           entries.addAll(updatedStorage.entrySet());
-
           for (final Map.Entry<UInt256, UInt256> entry : entries) {
             final UInt256 value = entry.getValue();
             final Hash keyHash = Hash.hash(entry.getKey());

@@ -29,6 +29,9 @@ import java.util.function.Function;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.units.bigints.UInt256;
 
+/**
+ * 主要用于读取操作
+ */
 public interface WorldStateArchive extends Closeable {
   Optional<WorldState> get(Hash rootHash, Hash blockHash);
 

@@ -35,7 +35,7 @@ public class GetVisitor<V> implements PathNodeVisitor<V> {
       // path diverges before the end of the extension, so it cannot match
       return NULL_NODE_RESULT;
     }
-
+    // ExtensionNode只会指向BranchNode, 直接往下找就行了
     return extensionNode.getChild().accept(this, path.slice(commonPathLength));
   }
 
@@ -44,16 +44,21 @@ public class GetVisitor<V> implements PathNodeVisitor<V> {
     assert path.size() > 0 : "Visiting path doesn't end with a non-matching terminator";
 
     final byte childIndex = path.get(0);
+    // branchNode也可能存储值
     if (childIndex == CompactEncoding.LEAF_TERMINATOR) {
       return branchNode;
     }
-
+    // branchNode如果不匹配，就继续往child下面找
     return branchNode.child(childIndex).accept(this, path.slice(1));
   }
 
+  /**
+   * 最终结果总是在leafNode中,或者branchNode中
+   */
   @Override
   public Node<V> visit(final LeafNode<V> leafNode, final Bytes path) {
     final Bytes leafPath = leafNode.getPath();
+    // 如果不匹配说明没有值
     if (leafPath.commonPrefixLength(path) != leafPath.size()) {
       return NULL_NODE_RESULT;
     }
