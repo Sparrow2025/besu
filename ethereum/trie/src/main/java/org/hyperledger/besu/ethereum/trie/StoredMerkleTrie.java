@@ -64,10 +64,7 @@ public abstract class StoredMerkleTrie<K extends Bytes, V> implements MerkleTrie
   public StoredMerkleTrie(
       final NodeFactory<V> nodeFactory, final Bytes32 rootHash, final Bytes rootLocation) {
     this.nodeFactory = nodeFactory;
-    this.root =
-        rootHash.equals(EMPTY_TRIE_NODE_HASH)
-            ? NullNode.instance()
-            : new StoredNode<>(nodeFactory, rootLocation, rootHash);
+    this.root = rootHash.equals(EMPTY_TRIE_NODE_HASH) ? NullNode.instance() : new StoredNode<>(nodeFactory, rootLocation, rootHash);
   }
 
   /**

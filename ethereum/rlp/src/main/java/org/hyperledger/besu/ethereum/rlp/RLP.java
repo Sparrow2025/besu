@@ -30,9 +30,10 @@ public abstract class RLP {
 
   public static final Bytes EMPTY_LIST;
 
-  // RLP encoding requires payloads to be less thatn 2^64 bytes in length
+  // RLP encoding requires payloads to be less than 2^64 bytes in length
   // As a result, the longest RLP strings will have a prefix composed of 1 byte encoding the type
   // of string followed by at most 8 bytes describing the length of the string
+  // RLP编码要求最长的数据要小于 2^64 bytes, 而最长的 RLP string 需要有 1 byte表示 type, 后面8个字节表示长度，所以最长前缀是 9 个字节
   public static final int MAX_PREFIX_SIZE = 9;
 
   static {
@@ -64,6 +65,7 @@ public abstract class RLP {
   }
 
   /**
+   * 创建一个RLPOutput，通过它给writing创建的一个consumer
    * Creates a {@link RLPOutput}, pass it to the provided consumer for writing, and then return the
    * RLP encoded result of that writing.
    *

@@ -25,6 +25,7 @@ import org.apache.tuweni.units.bigints.UInt256Value;
 import org.apache.tuweni.units.bigints.UInt64Value;
 
 /**
+ * 用于以RLP编码方式对数据进行编码的输出
  * An output used to encode data in RLP encoding.
  *
  * <p>An RLP "value" is fundamentally an {@code Item} defined the following way:
@@ -39,7 +40,7 @@ import org.apache.tuweni.units.bigints.UInt64Value;
  *
  * <p>A {@link RLPOutput} thus provides methods to write both lists and binary values. A list is
  * started by calling {@link #startList()} and ended by {@link #endList()}. Lists can be nested in
- * other lists in arbitrary ways. Binary values can be written directly with {@link
+ * other lists in arbitrary ways.(List可以任意嵌套) Binary values can be written directly with {@link
  * #writeBytes(Bytes)}, but the {@link RLPOutput} interface provides a wealth of convenience methods
  * to write specific types of data with a specific encoding.
  *

@@ -30,6 +30,8 @@ abstract class AbstractRLPOutput implements RLPOutput {
    *
    * Values written to the output are accumulated in the 'values' list. When a list is started, it
    * is indicated by adding a specific marker in that list (LIST_MARKER).
+   * 当一个List开始时会写入一个明确的标记 LIST_MARKER
+   *
    * While this is gathered, we also incrementally compute the size of the payload of every list of
    * that output. Those sizes are stored in 'payloadSizes': when all the output has been added,
    * payloadSizes[i] will contain the size of the (encoded) payload of the ith list in 'values'
@@ -37,13 +39,14 @@ abstract class AbstractRLPOutput implements RLPOutput {
    *
    * With that information gathered, encoded() can write its output in a single walk of 'values':
    * values can be encoded directly, and every time we read a list marker, we use the corresponding
-   * payload size to write the proper prefix and continue.
+   * payload size to write the proper prefix and continue. 每当我们读到list marker，我们根据payload size
+   * 写入适当的prefix
    *
    * The main remaining aspect is how the values of 'payloadSizes' are computed. Computing the size
    * of a list without nesting inside is easy: simply add the encoded size of any newly added value
    * to the running size. The difficulty is with nesting: when we start a new list, we need to
    * track both the sizes of the previous list and the new one. To deal with that, we use the small
-   * stack 'parentListStack': it stores the index in 'payloadSizes' of every currently "open" lists.
+   * stack 'parentListStack'(使用parentListStack来计算payloadSize): it stores the index in 'payloadSizes' of every currently "open" lists.
    * In other words, payloadSizes[parentListStack[stackSize - 1]] corresponds to the size of the
    * current list, the one to which newly added value are currently written (until the next call
    * to 'endList()' that is, while payloadSizes[parentListStack[stackSize - 2]] would be the size
@@ -67,9 +70,11 @@ abstract class AbstractRLPOutput implements RLPOutput {
   // First element is the total size of everything (the encoding may be a single non-list item, so
   // this handles that case more easily; we need that value to size out final output). Following
   // elements holds the size of the payload of the ith list in 'values'.
+  // payloadSizes[1]表示第一个list的size
   private int[] payloadSizes = new int[8];
   private int listsCount = 1; // number of lists current in 'values' + 1.
 
+  // 存储当前list在payloadSizes的下标
   private int[] parentListStack = new int[4];
   private int stackSize = 1;
 
@@ -79,8 +84,7 @@ abstract class AbstractRLPOutput implements RLPOutput {
 
   @Override
   public void writeBytes(final Bytes v) {
-    checkState(
-        stackSize > 1 || values.isEmpty(), "Terminated RLP output, cannot add more elements");
+    checkState(stackSize > 1 || values.isEmpty(), "Terminated RLP output, cannot add more elements");
     values.add(v);
     payloadSizes[currentList()] += RLPEncodingHelpers.elementSize(v);
   }
@@ -102,15 +106,18 @@ abstract class AbstractRLPOutput implements RLPOutput {
     ++stackSize; // and to the list stack.
 
     // Resize our lists if necessary.
+    // 扩展payloadSize
     if (listsCount > payloadSizes.length) {
       payloadSizes = Arrays.copyOf(payloadSizes, (payloadSizes.length * 3) / 2);
     }
+    // 扩展parentListStack
     if (stackSize > parentListStack.length) {
       parentListStack = Arrays.copyOf(parentListStack, (parentListStack.length * 3) / 2);
     }
 
     // The new current list size is store in the slot we just made room for by incrementing
     // listsCount
+    // 更新parentListStack指向的slot
     parentListStack[stackSize - 1] = listsCount - 1;
   }
 
@@ -119,11 +126,14 @@ abstract class AbstractRLPOutput implements RLPOutput {
     checkState(stackSize > 1, "LeaveList() called with no prior matching startList()");
 
     final int current = currentList();
+    // payloadSizes[current] 表示当前列表所有元素的总字节大小
+    // 这个方法根据 RLP 编码规则，计算一个 RLP 列表所需要的总字节大小，包含列表的内容和头部信息
     final int finishedListSize = RLPEncodingHelpers.listSize(payloadSizes[current]);
     --stackSize;
 
     // We just finished an item of our parent list, add it to that parent list size now.
     final int newCurrent = currentList();
+    // 为currentList加上当前List的总字节大小
     payloadSizes[newCurrent] += finishedListSize;
   }
 
